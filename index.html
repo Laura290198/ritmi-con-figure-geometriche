@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Gioco dei Ritmi, delle Sequenze e delle Forme</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --secondary: #FF6B6B;
+            --accent: #FFD166;
+            --bg: #F7F9FC;
+            --card-bg: #FFFFFF;
+            --text: #2D3748;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe UI', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 5px 0 10px 0;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .controls-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 850px;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .control-label {
+            font-weight: bold;
+            color: #718096;
+            margin-right: 5px;
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            background: var(--card-bg);
+            border: 3px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .btn:hover, .btn.active {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-mode {
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .btn-mode:hover, .btn-mode.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .theme-select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 3px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .instruction {
+            font-size: 1.15rem;
+            font-weight: bold;
+            text-align: center;
+            color: #4A5568;
+            line-height: 1.3;
+        }
+
+        .sequence-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .sequence-row-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .row-label {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #718096;
+            margin-bottom: 6px;
+        }
+
+        .sequence-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            background: #EDF2F7;
+            padding: 15px;
+            border-radius: 16px;
+            min-height: 95px;
+            width: 100%;
+        }
+
+        .tile {
+            width: 68px;
+            height: 68px;
+            background: white;
+            border: 3px solid #CBD5E0;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.15s, border-color 0.15s;
+        }
+
+        .tile svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .tile.slot {
+            border-style: dashed;
+            background: #F7FAFC;
+        }
+
+        .tile.slot.filled {
+            border-style: solid;
+            border-color: #4A90E2;
+        }
+
+        .tile.playing {
+            transform: scale(1.15);
+            border-color: #FFD166;
+            box-shadow: 0 0 15px #FFD166;
+        }
+
+        .palette {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: #E2E8F0;
+            padding: 12px 20px;
+            border-radius: 40px;
+            margin-top: 5px;
+        }
+
+        .palette .tile:hover {
+            transform: scale(1.1);
+        }
+
+        .palette .tile.active-source {
+            border-color: #38A169;
+            box-shadow: 0 0 12px rgba(56, 161, 105, 0.6);
+            transform: scale(1.1);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-check {
+            background: #38A169;
+            border-color: #38A169;
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px 24px;
+        }
+
+        .btn-check:hover {
+            background: #2F855A;
+        }
+
+        .btn-audio {
+            background: #ECC94B;
+            border-color: #D69E2E;
+            color: #744210;
+            font-size: 1.1rem;
+            padding: 10px 20px;
+        }
+
+        .btn-audio:hover {
+            background: #D69E2E;
+            color: white;
+        }
+
+        .feedback {
+            font-size: 1.25rem;
+            font-weight: bold;
+            min-height: 32px;
+            text-align: center;
+        }
+
+        .correct { color: #38A169; }
+        .wrong { color: #E53E3E; }
+    </style>
+</head>
+<body>
+
+    <h1>🎵 Il Gioco dei Ritmi e delle Forme 📐</h1>
+
+    <div class="controls-group">
+        <!-- Modalità -->
+        <div class="controls-row">
+            <span class="control-label">Modalità:</span>
+            <button class="btn btn-mode active" onclick="setMode('completa')">🧩 Completa la Sequenza</button>
+            <button class="btn btn-mode" onclick="setMode('sorella')">👯 Sequenze Sorelle</button>
+        </div>
+
+        <!-- Livelli e Temi -->
+        <div class="controls-row">
+            <span class="control-label">Livello:</span>
+            <button class="btn active" onclick="setLevel('AB')">AB (Facile)</button>
+            <button class="btn" onclick="setLevel('AAB')">AAB (Medio)</button>
+            <button class="btn" onclick="setLevel('ABC')">ABC (Difficile)</button>
+            <button class="btn" onclick="setLevel('AABB')">AABB (Super)</button>
+        </div>
+
+        <div class="controls-row">
+            <span class="control-label">Tema Simboli:</span>
+            <select class="theme-select" id="themeSelect" onchange="handleThemeChange()">
+                <option value="forme">📐 Forme Geometriche Colorate</option>
+                <option value="frutta">🍎 Frutta Colorata</option>
+                <option value="animali">🐶 Animali Simpatici</option>
+                <option value="strumenti">🎵 Strumenti Musicali</option>
+                <option value="simboli">⭐ Stelle e Simboli</option>
+                <option value="casuale">🎲 Casuale</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="game-card">
+        <div class="instruction" id="instruction">Completa il ritmo inserendo gli elementi mancanti!</div>
+
+        <div class="sequence-container" id="sequence-container">
+            <!-- Sequenze generate dinamicamente -->
+        </div>
+
+        <div class="palette-container" style="text-align:center;">
+            <div style="font-size:0.85rem; font-weight:bold; color:#718096; margin-bottom:4px;">ELEMENTI DA SCEGLIERE:</div>
+            <div class="palette" id="palette"></div>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="action-btns">
+            <button class="btn btn-audio" onclick="playCurrentSequenceSound()">🔊 Ascolta il Ritmo</button>
+            <button class="btn btn-check" onclick="checkAnswer()">Verifica! 🚀</button>
+            <button class="btn" onclick="generateGame()">Nuovo Ritmo 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // Set Forme Geometriche Colorate (SVG inline per render perfetto)
+        const GEOMETRIC_SHAPES = [
+            { id: 'cerchio_rosso', type: 'svg', freq: 261.63, html: `<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="#E53E3E"/></svg>` },
+            { id: 'quadrato_blu', type: 'svg', freq: 329.63, html: `<svg viewBox="0 0 50 50"><rect x="6" y="6" width="38" height="38" rx="5" fill="#3182CE"/></svg>` },
+            { id: 'triangolo_giallo', type: 'svg', freq: 392.00, html: `<svg viewBox="0 0 50 50"><polygon points="25,5 45,42 5,42" fill="#ECC94B"/></svg>` },
+            { id: 'stella_verde', type: 'svg', freq: 523.25, html: `<svg viewBox="0 0 50 50"><polygon points="25,2 32,17 48,18 36,29 40,45 25,36 10,45 14,29 2,18 18,17" fill="#38A169"/></svg>` },
+            { id: 'rombo_viola', type: 'svg', freq: 587.33, html: `<svg viewBox="0 0 50 50"><polygon points="25,4 45,25 25,46 5,25" fill="#805AD5"/></svg>` },
+            { id: 'ovale_arancione', type: 'svg', freq: 659.25, html: `<svg viewBox="0 0 50 50"><ellipse cx="25" cy="25" rx="21" ry="14" fill="#DD6B20"/></svg>` }
+        ];
+
+        // Altri temi (Emoji)
+        const EMOJI_THEMES = {
+            frutta: [
+                { id: 'mela', type: 'emoji', char: '🍎', freq: 261.63 },
+                { id: 'banana', type: 'emoji', char: '🍌', freq: 329.63 },
+                { id: 'uva', type: 'emoji', char: '🍇', freq: 392.00 },
+                { id: 'arancia', type: 'emoji', char: '🍊', freq: 523.25 }
+            ],
+            animali: [
+                { id: 'cane', type: 'emoji', char: '🐶', freq: 261.63 },
+                { id: 'gatto', type: 'emoji', char: '🐱', freq: 329.63 },
+                { id: 'topo', type: 'emoji', char: '🐭', freq: 392.00 },
+                { id: 'coniglio', type: 'emoji', char: '🐰', freq: 523.25 }
+            ],
+            strumenti: [
+                { id: 'campana', type: 'emoji', char: '🔔', freq: 261.63 },
+                { id: 'tamburo', type: 'emoji', char: '🥁', freq: 329.63 },
+                { id: 'tromba', type: 'emoji', char: '🎺', freq: 392.00 },
+                { id: 'chitarra', type: 'emoji', char: '🎸', freq: 523.25 }
+            ],
+            simboli: [
+                { id: 'stella', type: 'emoji', char: '⭐', freq: 261.63 },
+                { id: 'luna', type: 'emoji', char: '🌙', freq: 329.63 },
+                { id: 'sole', type: 'emoji', char: '☀️', freq: 392.00 },
+                { id: 'nuvola', type: 'emoji', char: '☁️', freq: 523.25 }
+            ]
+        };
+
+        const patterns = {
+            'AB': ['A', 'B', 'A', 'B', 'A', 'B'],
+            'AAB': ['A', 'A', 'B', 'A', 'A', 'B'],
+            'ABC': ['A', 'B', 'C', 'A', 'B', 'C'],
+            'AABB': ['A', 'A', 'B', 'B', 'A', 'A', 'B', 'B']
+        };
+
+        let currentMode = 'completa';
+        let currentLevel = 'AB';
+        let selectedPaletteItem = null;
+        let activePatternScheme = [];
+        let modelThemeItems = [];
+        let targetThemeItems = [];
+        let userAnswers = [];
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const inst = document.getElementById('instruction');
+            if (mode === 'completa') {
+                inst.innerText = "Completa il ritmo inserendo gli elementi mancanti nei riquadri tratteggiati!";
+            } else {
+                inst.innerText = "Crea la 'Sequenza Sorella': riproduci la stessa struttura del ritmo usando elementi diversi!";
+            }
+            generateGame();
+        }
+
+        function setLevel(level) {
+            currentLevel = level;
+            document.querySelectorAll('.controls-row .btn:not(.btn-mode)').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            generateGame();
+        }
+
+        function handleThemeChange() {
+            generateGame();
+        }
+
+        function getThemeSet(selectedKey) {
+            if (selectedKey === 'forme') return shuffle([...GEOMETRIC_SHAPES]);
+            if (selectedKey === 'casuale') {
+                const keys = ['forme', 'frutta', 'animali', 'strumenti', 'simboli'];
+                const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                return getThemeSet(randomKey);
+            }
+            return shuffle([...EMOJI_THEMES[selectedKey]]);
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateGame() {
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('feedback').className = 'feedback';
+            selectedPaletteItem = null;
+            
+            activePatternScheme = patterns[currentLevel];
+            const themeKey = document.getElementById('themeSelect').value;
+
+            modelThemeItems = getThemeSet(themeKey);
+            
+            // Per la sequenza sorella serve un secondo tema distinto
+            if (themeKey === 'forme') {
+                targetThemeItems = getThemeSet('frutta');
+            } else {
+                targetThemeItems = getThemeSet('forme');
+            }
+
+            const container = document.getElementById('sequence-container');
+            const palette = document.getElementById('palette');
+            container.innerHTML = '';
+            palette.innerHTML = '';
+
+            if (currentMode === 'completa') {
+                generateCompletaMode(container, palette);
+            } else {
+                generateSorellaMode(container, palette);
+            }
+        }
+
+        function renderItemInTile(tile, item) {
+            if (!item) return;
+            if (item.type === 'svg') {
+                tile.innerHTML = item.html;
+            } else {
+                tile.innerText = item.char;
+            }
+        }
+
+        function generateCompletaMode(container, palette) {
+            const rowWrapper = document.createElement('div');
+            rowWrapper.className = 'sequence-row-wrapper';
+
+            const row = document.createElement('div');
+            row.className = 'sequence-row';
+            
+            const length = activePatternScheme.length;
+            const emptyIndices = new Set();
+            while(emptyIndices.size < (length > 6 ? 3 : 2)) {
+                let idx = Math.floor(Math.random() * (length - 2)) + 2;
+                emptyIndices.add(idx);
+            }
+
+            userAnswers = [];
+
+            activePatternScheme.forEach((char, index) => {
+                const item = getItemForChar(char, modelThemeItems);
+                const tile = document.createElement('div');
+                
+                if (emptyIndices.has(index)) {
+                    tile.className = 'tile slot';
+                    tile.dataset.index = index;
+                    tile.dataset.expectedId = item.id;
+                    tile.onclick = () => fillSlot(tile, item);
+                    userAnswers[index] = null;
+                } else {
+                    tile.className = 'tile';
+                    renderItemInTile(tile, item);
+                    userAnswers[index] = item;
+                }
+                row.appendChild(tile);
+            });
+
+            rowWrapper.appendChild(row);
+            container.appendChild(rowWrapper);
+
+            // Palette
+            const uniqueChars = [...new Set(activePatternScheme)];
+            uniqueChars.forEach(char => {
+                const item = getItemForChar(char, modelThemeItems);
+                const pTile = document.createElement('div');
+                pTile.className = 'tile';
+                renderItemInTile(pTile, item);
+                pTile.onclick = () => selectPaletteItem(item, pTile);
+                palette.appendChild(pTile);
+            });
+        }
+
+        function generateSorellaMode(container, palette) {
+            // Modello
+            const modelWrapper = document.createElement('div');
+            modelWrapper.className = 'sequence-row-wrapper';
+
+            const modelLabel = document.createElement('div');
+            modelLabel.className = 'row-label';
+            modelLabel.innerText = "MODELLO:";
+            
+            const modelRow = document.createElement('div');
+            modelRow.className = 'sequence-row';
+
+            activePatternScheme.forEach(char => {
+                const item = getItemForChar(char, modelThemeItems);
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                renderItemInTile(tile, item);
+                modelRow.appendChild(tile);
+            });
+
+            modelWrapper.appendChild(modelLabel);
+            modelWrapper.appendChild(modelRow);
+
+            // Sorella
+            const sisterWrapper = document.createElement('div');
+            sisterWrapper.className = 'sequence-row-wrapper';
+
+            const sisterLabel = document.createElement('div');
+            sisterLabel.className = 'row-label';
+            sisterLabel.innerText = "SEQUENZA SOLELLA (da costruire):";
+
+            const sisterRow = document.createElement('div');
+            sisterRow.className = 'sequence-row';
+
+            userAnswers = new Array(activePatternScheme.length).fill(null);
+
+            activePatternScheme.forEach((char, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'tile slot';
+                tile.dataset.index = index;
+                tile.dataset.expectedChar = char;
+                tile.onclick = () => fillSlot(tile, null);
+                sisterRow.appendChild(tile);
+            });
+
+            sisterWrapper.appendChild(sisterLabel);
+            sisterWrapper.appendChild(sisterRow);
+
+            container.appendChild(modelWrapper);
+            container.appendChild(sisterWrapper);
+
+            // Palette con il target theme
+            const uniqueChars = [...new Set(activePatternScheme)];
+            uniqueChars.forEach(char => {
+                const item = getItemForChar(char, targetThemeItems);
+                const pTile = document.createElement('div');
+                pTile.className = 'tile';
+                renderItemInTile(pTile, item);
+                pTile.onclick = () => selectPaletteItem(item, pTile);
+                palette.appendChild(pTile);
+            });
+        }
+
+        function getItemForChar(char, themeItems) {
+            if (char === 'A') return themeItems[0];
+            if (char === 'B') return themeItems[1];
+            if (char === 'C') return themeItems[2];
+            return themeItems[3];
+        }
+
+        function selectPaletteItem(item, element) {
+            document.querySelectorAll('.palette .tile').forEach(t => t.classList.remove('active-source'));
+            selectedPaletteItem = item;
+            element.classList.add('active-source');
+        }
+
+        function fillSlot(slotTile, expectedItem) {
+            if (!selectedPaletteItem) {
+                alert("Prima seleziona un elemento dalla barra in basso!");
+                return;
+            }
+            slotTile.innerHTML = '';
+            renderItemInTile(slotTile, selectedPaletteItem);
+            slotTile.classList.add('filled');
+            
+            const index = slotTile.dataset.index;
+            userAnswers[index] = selectedPaletteItem;
+            
+            // Suono singolo al posizionamento
+            playNote(selectedPaletteItem.freq || 440, 0.15);
+        }
+
+        function checkAnswer() {
+            const feedback = document.getElementById('feedback');
+            
+            if (userAnswers.includes(null)) {
+                feedback.innerText = "Completa tutti gli spazi vuoti prima di verificare! 🧐";
+                feedback.className = "feedback wrong";
+                return;
+            }
+
+            let isCorrect = true;
+
+            if (currentMode === 'completa') {
+                const slots = document.querySelectorAll('.slot');
+                slots.forEach(slot => {
+                    const index = slot.dataset.index;
+                    if (userAnswers[index].id !== slot.dataset.expectedId) {
+                        isCorrect = false;
+                    }
+                });
+            } else {
+                const slots = document.querySelectorAll('.slot');
+                const charMap = {};
+                
+                slots.forEach(slot => {
+                    const index = slot.dataset.index;
+                    const expectedChar = slot.dataset.expectedChar;
+                    const itemGiven = userAnswers[index];
+
+                    if (!charMap[expectedChar]) {
+                        charMap[expectedChar] = itemGiven.id;
+                    } else if (charMap[expectedChar] !== itemGiven.id) {
+                        isCorrect = false;
+                    }
+                });
+
+                const usedIds = Object.values(charMap);
+                if (new Set(usedIds).size !== usedIds.length) {
+                    isCorrect = false;
+                }
+            }
+
+            if (isCorrect) {
+                feedback.innerText = "Super! Il ritmo è corretto! 🎉👏";
+                feedback.className = "feedback correct";
+                playSuccessSound();
+            } else {
+                feedback.innerText = "C'è un piccolo errore nel ritmo. Riprova! 💪";
+                feedback.className = "feedback wrong";
+            }
+        }
+
+        // Sintesi audio per il ritmo (Web Audio API)
+        function playNote(freq, duration) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function playCurrentSequenceSound() {
+            let tilesToPlay = [];
+            
+            if (currentMode === 'completa') {
+                const row = document.querySelector('.sequence-row');
+                tilesToPlay = Array.from(row.children);
+            } else {
+                const rows = document.querySelectorAll('.sequence-row');
+                tilesToPlay = Array.from(rows[0].children); // Riproduce il modello
+            }
+
+            tilesToPlay.forEach((tile, index) => {
+                setTimeout(() => {
+                    tile.classList.add('playing');
+                    
+                    // Trova la nota corrispondente
+                    const char = activePatternScheme[index];
+                    const item = getItemForChar(char, modelThemeItems);
+                    if (item && item.freq) {
+                        playNote(item.freq, 0.3);
+                    }
+
+                    setTimeout(() => tile.classList.remove('playing'), 350);
+                }, index * 450);
+            });
+        }
+
+        function playSuccessSound() {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((f, i) => {
+                setTimeout(() => playNote(f, 0.25), i * 120);
+            });
+        } 
+
+        generateGame();
+    </script>
+</body>
+</html>
